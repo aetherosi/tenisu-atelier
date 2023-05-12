@@ -39,7 +39,7 @@ public class PlayerDataBaseLoader implements CommandLineRunner {
 
             playerService.saveAll(playerBase.getPlayers());
 
-            LOGGER.info("{} users were saved in database", playerBase.getPlayers().size());
+            LOGGER.info("{} players were saved in database", playerBase.getPlayers().size());
         } catch (IOException e) {
             LOGGER.error("Unable to save users due to : " + e.getMessage());
         }

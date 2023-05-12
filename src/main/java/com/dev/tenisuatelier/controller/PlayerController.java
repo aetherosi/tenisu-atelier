@@ -1,12 +1,16 @@
 package com.dev.tenisuatelier.controller;
 
+import com.dev.tenisuatelier.domain.Player;
 import com.dev.tenisuatelier.dto.PlayerDTO;
 import com.dev.tenisuatelier.dto.RatioDTO;
 import com.dev.tenisuatelier.response.Response;
 import com.dev.tenisuatelier.service.PlayerService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -30,21 +34,20 @@ public class PlayerController {
 
         return Response.builder()
                 .status(200)
-                .data(
-                        players
-                ).build();
+                .data(players)
+                .message(players.size() + " found in database")
+                .build();
     }
 
     @GetMapping(value = "/players/{id}", produces = "application/json")
     Response findPlayer(@PathVariable final long id) {
-
         Optional<PlayerDTO> player = playerService.findById(id);
 
         return player.map(p ->
                         Response.builder()
                                 .status(200)
                                 .data(p)
-                                .message("Player found !").build())
+                                .message("Player found with id " + id).build())
                 .orElseGet(() ->
                         Response.builder()
                                 .status(422)
@@ -85,6 +88,23 @@ public class PlayerController {
                                 .status(422)
                                 .data(new ArrayList<>())
                                 .message("Player database is empty")
+                                .build());
+    }
+
+    @DeleteMapping(value = "/players/{id}", produces = "application/json")
+    Response deletePlayer(@PathVariable final long id) {
+        Optional<PlayerDTO> player = playerService.deleteById(id);
+
+        return player.map(p ->
+                        Response.builder()
+                                .status(200)
+                                .message("Player of ID : " + id + " was deleted successfully")
+                                .build())
+                .orElseGet(() ->
+                        Response.builder()
+                                .status(422)
+                                .data(new ArrayList<>())
+                                .message("Player of ID : " + id + "not found in database")
                                 .build());
     }
 }

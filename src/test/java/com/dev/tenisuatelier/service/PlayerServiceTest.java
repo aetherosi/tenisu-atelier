@@ -47,26 +47,38 @@ class PlayerServiceTest {
                     new Player(3L, "Gloria", "Pelota", "G.PEL", "F",
                             new Country("ESP_PIC", "ESP"),
                             "PIC",
-                            new Stats(3, 3000d, 70000d, 165d, 22, 2, 3, List.of(true, true, false, false, false))
+                            new Stats(33, 3000d, 70000d, 165d, 22, 2, 3, List.of(true, true, false, false, false))
                     ),
                     new Player(4L, "David", "Raquette", "D.RAQ", "M",
                             new Country("SUI_PIC", "SUI"),
                             "PIC",
-                            new Stats(12, 2000d, 82000d, 154d, 28, 3, 2, List.of(true, true, false, true, false))
+                            new Stats(12, 2000d, 82000d, 154d, 28, 5, 0, List.of(true, true, true, true, true))
                     )
             );
 
     }
 
     @Test
-    public void should_retrieve_player_given_an_existing_id() {
-        long playerId = 1L;
+    public void should_return_all_players_sorted_by_rank_given_a_list_of_players() {
+        when(playerRepository.findAll()).thenReturn(PLAYERS);
 
-        Player expectedPlayer = PLAYERS.get(0);
+        List<PlayerDTO> ranking = sut.findAll();
+
+        assertThat(ranking.get(0).getStatsDTO().getRank()).isEqualTo(1);
+        assertThat(ranking.get(1).getStatsDTO().getRank()).isEqualTo(2);
+        assertThat(ranking.get(2).getStatsDTO().getRank()).isEqualTo(12);
+        assertThat(ranking.get(3).getStatsDTO().getRank()).isEqualTo(33);
+    }
+
+    @Test
+    public void should_delete_player_given_an_existing_id() {
+        long playerId = 2L;
+
+        Player expectedPlayer = PLAYERS.get(1);
 
         when(playerRepository.findById(playerId)).thenReturn(Optional.of(expectedPlayer));
 
-        Optional<PlayerDTO> player = sut.findById(playerId);
+        Optional<PlayerDTO> player = sut.deleteById(playerId);
 
         assertThat(player).isNotEmpty();
         assertThat(player.get().getFirstName()).isEqualTo("Jean");
@@ -118,8 +130,8 @@ class PlayerServiceTest {
 
         Optional<RatioDTO> countryWithRatio = sut.findHighestWinRatioCountry();
 
-        assertThat(countryWithRatio.get().getCountry().getCode()).isEqualTo("ESP");
-        assertThat(countryWithRatio.get().getCountry().getPicture()).isEqualTo("ESP_PIC");
+        assertThat(countryWithRatio.get().getCountry().getCode()).isEqualTo("SUI");
+        assertThat(countryWithRatio.get().getCountry().getPicture()).isEqualTo("SUI_PIC");
         assertThat(countryWithRatio.get().getRatio()).isEqualTo(1d);
     }
 

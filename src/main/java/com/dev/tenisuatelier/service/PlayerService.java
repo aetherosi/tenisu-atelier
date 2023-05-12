@@ -8,13 +8,19 @@ import com.dev.tenisuatelier.dto.RatioDTO;
 import com.dev.tenisuatelier.mapper.PlayerMapper;
 import com.dev.tenisuatelier.mapper.RatioMapper;
 import com.dev.tenisuatelier.repository.PlayerRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -23,28 +29,49 @@ import java.util.stream.StreamSupport;
 public class PlayerService {
     private final PlayerRepository playerRepository;
 
+    private final Logger LOGGER = LoggerFactory.getLogger(PlayerService.class);
+
     @Autowired
     public PlayerService(PlayerRepository playerRepository) {
         this.playerRepository = playerRepository;
     }
 
-    public Iterable<Player> saveAll(List<PlayerDTO> playersDTO) {
-        return playerRepository.saveAll(PlayerMapper.mapAllPlayersDTOtoEntity(playersDTO));
-    }
-
     public List<PlayerDTO> findAll() {
         Iterable<Player> players = playerRepository.findAll();
 
-        return StreamSupport.stream(players.spliterator(), false)
+        List<PlayerDTO> playersDTO = StreamSupport.stream(players.spliterator(), false)
                 .sorted(Comparator.comparingDouble(c -> c.getStats().getRank()))
                 .map(PlayerMapper::toPlayerDTO)
                 .collect(Collectors.toList());
+
+        LOGGER.info("{} players found in database", playersDTO.size());
+
+        return playersDTO;
     }
 
     public Optional<PlayerDTO> findById(long playerId) {
         Optional<Player> player = playerRepository.findById(playerId);
 
         return player.map(PlayerMapper::toPlayerDTO);
+    }
+
+    public Optional<PlayerDTO> deleteById(long playerId) {
+        LOGGER.info("Delete player of id {}", playerId);
+
+        Optional<Player> player = playerRepository.findById(playerId);
+
+        if (player.isPresent()) {
+            playerRepository.deleteById(playerId);
+            LOGGER.info("Player of id {} successfully deleted", playerId);
+        } else {
+            LOGGER.error("Could not find player of id {} in database", playerId);
+        }
+
+        return player.map(PlayerMapper::toPlayerDTO);
+    }
+
+    public Iterable<Player> saveAll(List<PlayerDTO> playersDTO) {
+        return playerRepository.saveAll(PlayerMapper.mapAllPlayersDTOtoEntity(playersDTO));
     }
 
     public Optional<RatioDTO> findHighestWinRatioCountry() {
@@ -64,17 +91,17 @@ public class PlayerService {
         for (Country country : playersPerCountryMap.keySet()) {
             List<Player> playerCountries = playersPerCountryMap.get(country);
 
-            Double winRatio = BigDecimal.valueOf(playerCountries.stream()
+            Double averageWinRatio = BigDecimal.valueOf(playerCountries.stream()
                             .collect(Collectors.averagingDouble(computeRatio::apply)))
                     .setScale(3, RoundingMode.CEILING)
                     .doubleValue();
 
-            ratioPerCountryMap.put(country, winRatio);
+            ratioPerCountryMap.put(country, averageWinRatio);
         }
 
-        Optional<Entry<Country, Double>> ratio = ratioPerCountryMap.entrySet().stream().min(Entry.comparingByValue(Comparator.reverseOrder()));
+        Optional<Entry<Country, Double>> sortedRatioPerCountryMap = ratioPerCountryMap.entrySet().stream().min(Entry.comparingByValue(Comparator.reverseOrder()));
 
-        return ratio.map(RatioMapper::mapToRatioDTO);
+        return sortedRatioPerCountryMap.map(RatioMapper::mapToRatioDTO);
     }
 
     public Double computeAverageBMI() {
@@ -82,7 +109,7 @@ public class PlayerService {
 
         Function<Player, Double> computePlayerBMI = p -> {
             Stats stats = p.getStats();
-            return  toKilograms(stats.getWeight()) / (Math.pow(toMeters(stats.getHeight()), 2));
+            return toKilograms(stats.getWeight()) / (Math.pow(toMeters(stats.getHeight()), 2));
         };
 
         return BigDecimal.valueOf(
