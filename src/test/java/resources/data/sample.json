@@ -1,0 +1,44 @@
+{
+  "players": [
+    {
+      "id": 52,
+      "firstname": "Novak",
+      "lastname": "Djokovic",
+      "shortname": "N.DJO",
+      "sex": "M",
+      "country": {
+        "picture": "https://data.latelier.co/training/tennis_stats/resources/Serbie.png",
+        "code": "SRB"
+      },
+      "picture": "https://data.latelier.co/training/tennis_stats/resources/Djokovic.png",
+      "data": {
+        "rank": 2,
+        "points": 2542,
+        "weight": 80000,
+        "height": 188,
+        "age": 31,
+        "last": [1, 1, 1, 1, 1]
+      }
+    },
+    {
+      "id": 65,
+      "firstname": "Stan",
+      "lastname": "Wawrinka",
+      "shortname": "S.WAW",
+      "sex": "M",
+      "country": {
+        "picture": "https://data.latelier.co/training/tennis_stats/resources/Suisse.png",
+        "code": "SUI"
+      },
+      "picture": "https://data.latelier.co/training/tennis_stats/resources/Wawrinka.png",
+      "data": {
+        "rank": 21,
+        "points": 1784,
+        "weight": 81000,
+        "height": 183,
+        "age": 33,
+        "last": [1, 1, 1, 0, 1]
+      }
+    }
+  ]
+}
